@@ -1,0 +1,45 @@
+name: 'Create Branch Database'
+author: DevOps
+description: Create a branch database
+
+inputs:
+  github_ref_name:
+    description: 'GitHub ref_name property'
+    required: true
+  github_actor:
+    description: 'GitHub actor property'
+    required: true
+  aws_access_key:
+    description: 'AWS Access Key (Required if no aws-actions/configure-aws-credentials)'
+    required: true
+  aws_secret_key:
+    description: 'AWS Secret Key (Required if no aws-actions/configure-aws-credentials)'
+    required: true
+  aws_region:
+    description: 'AWS Region'
+    required: false
+    default: 'us-east-1'
+    
+runs:
+  using: 'composite'
+  steps:
+    - name: Extract branch name
+      id: extract_branch
+      run: echo "branch=$(echo ${ inputs.github_ref_name })" >> $GITHUB_OUTPUT
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+ 
+    - name: Authenticate with DEV
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ inputs.aws_access_key }}
+        aws-secret-access-key: ${{ inputs.aws_secret_key }}
+        aws-region: ${{ inputs.aws_region }}
+        
+    - name: Create Branch Database
+      id: create-branch-database
+      shell: bash
+      run: |
+           chmod +x ./data/create_branch_database.sh
+           ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ steps.extract_branch.outputs.branch }} ${{ inputs.github_actor }}
