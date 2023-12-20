@@ -1,8 +1,11 @@
-name: 'Create Branch Database'
+name: 'Branch Database Action'
 author: DevOps
-description: Create a branch database
+description: Create or Delete a branch database
 
 inputs:
+  branch_action:
+    description: 'Create or Delete a branch database'
+    required: true
   github_ref_name:
     description: 'GitHub ref_name property'
     required: true
@@ -38,8 +41,14 @@ runs:
         aws-region: ${{ inputs.aws_region }}
         
     - name: Create Branch Database
-      id: create-branch-database
+      if: ${{ inputs.branch_action == 'Create' }}
       shell: bash
       run: |
            chmod +x ./data/create_branch_database.sh
            ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ steps.extract_branch.outputs.branch }} ${{ inputs.github_actor }}
+
+    - name: Delete Branch Database
+      if: ${{ inputs.branch_action == 'Delete' }}
+      run: |
+        chmod +x ./data/delete_branch_database.sh
+        ./data/delete_branch_database.sh BuildUserDatabaseConnectionSettings ${{ steps.extract_branch.outputs.branch }}
