@@ -1,0 +1,17 @@
+name: Release New Action Version
+on:
+  push:
+    branches:
+      - "main"
+      
+jobs:
+  release-action:
+    name: Release new version
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Bump Version
+        uses: patriotsoftware/semver-bump-action@v1
