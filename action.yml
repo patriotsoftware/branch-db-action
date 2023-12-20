@@ -40,12 +40,14 @@ runs:
       if: ${{ inputs.branch_action == 'Create' }}
       shell: bash
       run: |
-           chmod +x ./data/create_branch_database.sh
-           ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.github_ref_name }} ${{ inputs.github_actor }}
+        echo "Creating branch database ${{ inputs.github_ref_name }}"
+        chmod +x ./data/create_branch_database.sh
+        ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.github_ref_name }} ${{ inputs.github_actor }}
 
     - name: Delete Branch Database
       if: ${{ inputs.branch_action == 'Delete' }}
       shell: bash
       run: |
+        echo "Deleting branch database ${{ inputs.github_ref_name }}"
         chmod +x ./data/delete_branch_database.sh
         ./data/delete_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.github_ref_name }}
