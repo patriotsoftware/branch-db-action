@@ -10,7 +10,7 @@ create or delete a branch database in dev.
 ## Parameters
 
 #### 'branch_action' (required)
-Specify 'Create' or 'Delete' action to either create or delete a branch database.
+Specify 'Create', 'Recreate' or 'Delete' action to either create, recreate or delete a branch database. The 'Recreate' options deletes if exists then creates.
 
 #### 'github_ref_name' (required)
 GitHub property 'github.ref' used to determine the branch name.
