@@ -50,6 +50,7 @@ runs:
 
     - name: Delete Branch Database
       if: ${{ inputs.branch_action == 'Delete' }}
+      shell: bash
       run: |
         chmod +x ./data/delete_branch_database.sh
         ./data/delete_branch_database.sh BuildUserDatabaseConnectionSettings ${{ steps.extract_branch.outputs.branch }}
