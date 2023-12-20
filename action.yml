@@ -26,11 +26,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Extract branch name
-      id: extract_branch
-      shell: bash
-      run: echo "branch=$(echo ${ inputs.github_ref_name })" >> $GITHUB_OUTPUT
-
     - name: Checkout code
       uses: actions/checkout@v3
  
@@ -46,11 +41,11 @@ runs:
       shell: bash
       run: |
            chmod +x ./data/create_branch_database.sh
-           ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ steps.extract_branch.outputs.branch }} ${{ inputs.github_actor }}
+           ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.github_ref_name }} ${{ inputs.github_actor }}
 
     - name: Delete Branch Database
       if: ${{ inputs.branch_action == 'Delete' }}
       shell: bash
       run: |
         chmod +x ./data/delete_branch_database.sh
-        ./data/delete_branch_database.sh BuildUserDatabaseConnectionSettings ${{ steps.extract_branch.outputs.branch }}
+        ./data/delete_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.github_ref_name }}
