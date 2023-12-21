@@ -1,6 +1,6 @@
 name: 'Branch Database Action'
 author: DevOps
-description: Create or Delete a branch database
+description: Create, Recreate or Delete a branch database
 
 inputs:
   branch_action:
@@ -12,6 +12,9 @@ inputs:
     required: true
   github_actor:
     description: 'GitHub actor property'
+    required: true
+  github_sha:
+    description: 'GitHub sha property'
     required: true
   aws_access_key:
     description: 'AWS Access Key (Required if no aws-actions/configure-aws-credentials)'
@@ -52,5 +55,10 @@ runs:
         echo "Creating branch database ${{ inputs.github_ref_name }}"
         chmod +x ./data/create_branch_database.sh
         ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.github_ref_name }} ${{ inputs.github_actor }}
+
+    - name: Run Liquibase
+      if: ${{ inputs.branch_action == 'Recreate' || inputs.branch_action == 'Create' }}
+      run: |
+        ./data/deploy_pending_database_changes.sh BuildUserDatabaseConnectionSettings ${{ inputs.github_ref_name }} BeforeCodeDeploy,dev ${{ inputs.github_sha }}
 
 
