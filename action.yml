@@ -11,14 +11,11 @@ inputs:
     description: 'Database name'
     required: true
   source_database_name:
-    description: 'Source database name'
+    description: 'Source database name. Default is patriot_pay'
     required: false
     default: 'patriot_pay'
   github_actor:
     description: 'GitHub actor property'
-    required: true
-  github_sha:
-    description: 'GitHub sha property'
     required: true
   aws_access_key:
     description: 'AWS Access Key (Required if no aws-actions/configure-aws-credentials)'
@@ -46,7 +43,7 @@ runs:
         
     - name: Delete Branch Database
       shell: bash
-      if: ${{ inputs.branch_action == 'Recreate' || inputs.branch_action == 'Delete' }}
+      if: ${{ inputs.branch_action == 'Delete' }}
       run: |
         echo "Deleting branch database ${{ inputs.database_name }}"
         chmod +x ./data/delete_branch_database.sh
@@ -57,8 +54,14 @@ runs:
       shell: bash
       run: |
         echo "Creating branch database ${{ inputs.database_name }}"
-        echo "Recreate database: ${{ inputs.branch_action == 'Recreate' }}"
         chmod +x ./data/create_branch_database.sh
-        ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.database_name }} ${{ inputs.github_actor }} ${{ inputs.source_database_name }} ${{ inputs.branch_action == 'Recreate' }}
+        ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.database_name }} ${{ inputs.github_actor }} ${{ inputs.source_database_name }} false
 
+    - name: Recreate Branch Database
+      if: ${{ inputs.branch_action == 'Recreate' }}
+      shell: bash
+      run: |
+        echo "Recreate branch database: ${{ inputs.database_name }}"
+        chmod +x ./data/create_branch_database.sh
+        ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.database_name }} ${{ inputs.github_actor }} ${{ inputs.source_database_name }} true
 
