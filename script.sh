@@ -32,7 +32,7 @@ if [ $ACTION = "Delete" ]; then
 
     echo "Delete complete."
 
-elif [[ $ACTION = "Create" ] || [ $ACTION = "Recreate" ]]; then
+elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
     
     dbExists=$(psql -U $DBUSERNAME -h $DBHOST -d postgres -qtAX -c "SELECT EXISTS(SELECT 1 AS result FROM pg_database WHERE datname='$DATABASE');")
     dbPrimaryComment=$(psql -qtAX -h $DBHOST -d postgres -U $DBUSERNAME -c "SELECT EXISTS(SELECT 1 AS result FROM pg_database WHERE datname = '$DATABASE' AND shobj_description( oid, 'pg_database') = 'primary');")
