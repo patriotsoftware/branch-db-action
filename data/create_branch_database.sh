@@ -10,6 +10,20 @@ DATABASE="$INPUT_DATABASE_NAME"
 USERNAME="$INPUT_GITHUB_ACTOR"
 SOURCE_DB="$INPUT_SOURCE_DATABASE_NAME"
 
+get_database_connection_settings() {
+    SECRET=$(aws secretsmanager get-secret-value --secret-id $1)
+    
+    SECRET_VALUE=$(echo $SECRET | jq -r '.SecretString')
+    DBUSERNAME=$(echo $SECRET_VALUE | jq -r '.username')
+    DBPASSWORD=$(echo $SECRET_VALUE | jq -r '.password')
+    DBHOST=$(echo $SECRET_VALUE | jq -r '.host')
+    DBPORT=$(echo $SECRET_VALUE | jq -r '.port')
+
+    DBURL="jdbc:postgresql://${DBHOST}:${DBPORT}/${DATABASE}"
+
+    export PGPASSWORD=$DBPASSWORD
+}
+
 get_database_connection_settings $SECRET_ID
 
 dbExists=$(psql -U $DBUSERNAME -h $DBHOST -d postgres -qtAX -c "SELECT EXISTS(SELECT 1 AS result FROM pg_database WHERE datname='$DATABASE');")
