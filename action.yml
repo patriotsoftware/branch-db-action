@@ -50,12 +50,6 @@ runs:
         aws-secret-access-key: ${{ inputs.aws_secret_key }}
         aws-region: ${{ inputs.aws_region }}
 
-    - name: Utils
-      shell: bash
-      run: |
-        chmod +x ${{ github.action_path }}/data/utils.sh 
-        ${{ github.action_path }}/data/utils.sh
-
     - name: Delete Branch Database
       shell: bash
       if: inputs.branch_action == 'Delete'
