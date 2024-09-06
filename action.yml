@@ -50,17 +50,13 @@ runs:
         aws-secret-access-key: ${{ inputs.aws_secret_key }}
         aws-region: ${{ inputs.aws_region }}
 
-    - name: Delete Branch Database
-      shell: bash
-      if: inputs.branch_action == 'Delete'
+    - shell: bash
+      env:
+        DATABASE: ${{ inputs.database_name }}
+        USERNAME: ${{ inputs.github_actor }}
+        SOURCE_DB: ${{ inputs.source_database_name }}
+        ACTION: ${{ inpits.branch_action }}
       run: |
-        chmod +x ${{ github.action_path }}/data/delete_branch_database.sh
-        ${{ github.action_path }}/data/delete_branch_database.sh
-      
-    - name: Create Branch Database
-      if: inputs.branch_action == 'Create' || inputs.branch_action == 'Recreate'
-      shell: bash
-      run: |
-        chmod +x ${{ github.action_path }}/data/create_branch_database.sh
-        ${{ github.action_path }}/data/create_branch_database.sh
+        chmod +x ${{ github.action_path }}/script.sh
+        ${{ github.action_path }}/script.sh
 
