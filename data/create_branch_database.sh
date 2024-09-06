@@ -35,7 +35,7 @@ rm -f dump.sql
 set -eo pipefail
 
 if [ $DATABASE = $SOURCE_DB ]; then
-    echo "Source and destination cannot be the same"
+    echo "Source '$SOURCE_DB' and destination '$DATABASE' cannot be the same"
     exit 1
 elif [ $DATABASE = "patriot_pay" ]; then
     echo "db name set to patriot_pay no db change"
