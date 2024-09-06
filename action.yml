@@ -35,6 +35,7 @@ runs:
         inputs.database_name == '' ||
         inputs.github_actor == '' ||
         (inputs.branch_action != 'Delete' && inputs.source_database_name == '')
+      shell: bash
       run: |
         echo "Inputs validation failed."
         exit 1
