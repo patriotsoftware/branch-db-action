@@ -23,14 +23,13 @@ get_database_connection_settings $SECRET_ID
 
 if [ $ACTION = "Delete" ]; then
 
-    echo "Deleting $DATABASE.."
+    echo "Deleting $DATABASE database.."
 
     psql -U $DBUSERNAME -h $DBHOST -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DATABASE}';"
     psql -U $DBUSERNAME -h $DBHOST -d postgres -c "DROP DATABASE \"${DATABASE}\";"
-
     psql -U $DBUSERNAME -h $DBHOST -d control_center -c "UPDATE log.branch_database SET deleted_on = NOW() WHERE database_name = '${DATABASE}' AND deleted_on IS NULL;"
 
-    echo "Delete complete."
+    echo "Database delete complete."
 
 elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
     
@@ -58,7 +57,7 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
         echo "Branch database name exists as a primary database. To prevent wiping out a primary db, No Database Created."
         exit 1
     elif [[ "$dbExists" = *"f"* ]] || [[ $ACTION = "Recreate" ]]; then
-        echo "$ACTION $DATABASE from a copy of $SOURCE_DB..."
+        echo "$ACTION '$DATABASE' database from a copy of '$SOURCE_DB' database..."
         psql -h $DBHOST -U $DBUSERNAME -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE';"
         dropdb --if-exists -h $DBHOST -U $DBUSERNAME $DATABASE   
         createdb --owner=dev_role -h $DBHOST -U $DBUSERNAME $DATABASE --template=template0 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 --encoding=UTF-8

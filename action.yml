@@ -50,13 +50,11 @@ runs:
         aws-secret-access-key: ${{ inputs.aws_secret_key }}
         aws-region: ${{ inputs.aws_region }}
 
-    - shell: bash
-      env:
+    - env:
         DATABASE: ${{ inputs.database_name }}
         USERNAME: ${{ inputs.github_actor }}
         SOURCE_DB: ${{ inputs.source_database_name }}
         ACTION: ${{ inputs.branch_action }}
-      run: |
-        chmod +x ${{ github.action_path }}/script.sh
-        ${{ github.action_path }}/script.sh
+      shell: bash
+      run: ${{ github.action_path }}/script.sh
 
