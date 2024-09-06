@@ -55,7 +55,7 @@ runs:
         DATABASE: ${{ inputs.database_name }}
         USERNAME: ${{ inputs.github_actor }}
         SOURCE_DB: ${{ inputs.source_database_name }}
-        ACTION: ${{ inpits.branch_action }}
+        ACTION: ${{ inputs.branch_action }}
       run: |
         chmod +x ${{ github.action_path }}/script.sh
         ${{ github.action_path }}/script.sh
