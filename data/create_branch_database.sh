@@ -5,23 +5,10 @@
 
 set -e
 
-validate_input_arguments() {
-    if [ $# -lt 5 ]; then
-        echo "Missing Arguments. Usage: ./create_branch_database.sh [ConnectionSecretId] [DatabaseName] [BranchCreationUsername] [SourceDatabaseName] [Recreate]"
-        exit 1
-    fi
-}
-
-validate_input_arguments $@
-
-SECRET_ID="$1"
-DATABASE="$2"
-USERNAME="$3"
-SOURCE_DB="$4"
-RECREATE="$5"
-
-# Load helper functions from utils.sh
-. ./data/utils.sh
+SECRET_ID="BuildUserDatabaseConnectionSettings"
+DATABASE="$INPUT_DATABASE_NAME"
+USERNAME="$INPUT_GITHUB_ACTOR"
+SOURCE_DB="$INPUT_SOURCE_DATABASE_NAME"
 
 get_database_connection_settings $SECRET_ID
 
@@ -33,7 +20,10 @@ rm -f dump.sql
 # set error to exit script and errors on any part of pipe to fail
 set -eo pipefail
 
-if [ $DATABASE = "patriot_pay" ]; then
+if [ $DATABASE = $SOURCE_DB ]; then
+    echo "Source and destination cannot be the same"
+    exit 1
+elif [ $DATABASE = "patriot_pay" ]; then
     echo "db name set to patriot_pay no db change"
     exit 0
 elif [ $SOURCE_DB = "patriot_pay_prod_restore" ]; then
@@ -45,7 +35,7 @@ elif [ $DATABASE = "master" ]; then
 elif [[ "$dbPrimaryComment" = *"t"* ]]; then
 	echo "Branch database name exists as a primary database. To prevent wiping out a primary db, No Database Created."
 	exit 1
-elif [[ "$dbExists" = *"f"* ]] || [[ "$RECREATE" = true ]]; then
+elif [[ "$dbExists" = *"f"* ]] || [[ $INPUT_BRANCH_ACTION = "Recreate" ]]; then
     psql -h $DBHOST -U $DBUSERNAME -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE';"
     dropdb --if-exists -h $DBHOST -U $DBUSERNAME $DATABASE   
     createdb --owner=dev_role -h $DBHOST -U $DBUSERNAME $DATABASE --template=template0 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 --encoding=UTF-8

@@ -1,23 +1,10 @@
 #!/bin/bash
 
 # This script deletes a branch database. 
-
 set -e
 
-validate_input_arguments() {
-    if [ $# -lt 2 ]; then
-        echo "Missing Arguments. Usage: ./delete_branch_database.sh [ConnectionSecretId] [DatabaseName]"
-        exit 1
-    fi
-}
-
-validate_input_arguments $@
-
-SECRET_ID="$1"
-DATABASE="$2"
-
-# Load helper functions from utils.sh
-. ./data/utils.sh
+SECRET_ID="BuildUserDatabaseConnectionSettings"
+DATABASE="$INPUT_DATABASE_NAME"
 
 get_database_connection_settings $SECRET_ID
 

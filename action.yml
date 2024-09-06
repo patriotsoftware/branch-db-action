@@ -31,6 +31,14 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - if: |
+        inputs.database_name == '' ||
+        inputs.github_actor == '' ||
+        (inputs.branch_action != 'Delete' && inputs.source_database_name == '')
+      run: |
+        echo "Inputs validation failed."
+        exit 1
+
     - name: Checkout code
       uses: actions/checkout@v4
  
@@ -40,28 +48,18 @@ runs:
         aws-access-key-id: ${{ inputs.aws_access_key }}
         aws-secret-access-key: ${{ inputs.aws_secret_key }}
         aws-region: ${{ inputs.aws_region }}
+
+    - name: Utils
+      shell: bash
+      run: ${{ github.action_path }}/data/utils.sh 
         
     - name: Delete Branch Database
       shell: bash
-      if: ${{ inputs.branch_action == 'Delete' }}
-      run: |
-        echo "Deleting branch database ${{ inputs.database_name }}"
-        chmod +x ./data/delete_branch_database.sh
-        ./data/delete_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.database_name }}
-        
+      if: inputs.branch_action == 'Delete'
+      run: ${{ github.action_path }}/data/delete_branch_database.sh
+      
     - name: Create Branch Database
-      if: ${{ inputs.branch_action == 'Create' }}
+      if: inputs.branch_action == 'Create' || inputs.branch_action == 'Recreate'
       shell: bash
-      run: |
-        echo "Creating branch database ${{ inputs.database_name }}"
-        chmod +x ./data/create_branch_database.sh
-        ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.database_name }} ${{ inputs.github_actor }} ${{ inputs.source_database_name }} false
-
-    - name: Recreate Branch Database
-      if: ${{ inputs.branch_action == 'Recreate' }}
-      shell: bash
-      run: |
-        echo "Recreate branch database: ${{ inputs.database_name }}"
-        chmod +x ./data/create_branch_database.sh
-        ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.database_name }} ${{ inputs.github_actor }} ${{ inputs.source_database_name }} true
+      run: ${{ github.action_path }}/data/create_branch_database.sh
 
