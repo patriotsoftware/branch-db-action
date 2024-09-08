@@ -34,6 +34,8 @@ runs:
     - if: |
         inputs.database_name == '' ||
         inputs.github_actor == '' ||
+        inputs.database_name == 'master' || 
+        inputs.database_name == 'main' ||
         (inputs.branch_action != 'Delete' && inputs.source_database_name == '')
       shell: bash
       run: |
