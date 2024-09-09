@@ -31,17 +31,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - if: |
-        inputs.database_name == '' ||
-        inputs.github_actor == '' ||
-        inputs.database_name == 'master' || 
-        inputs.database_name == 'main' ||
-        (inputs.branch_action != 'Delete' && inputs.source_database_name == '')
-      shell: bash
-      run: |
-        echo "Inputs validation failed."
-        exit 1
-
     - name: Checkout code
       uses: actions/checkout@v4
  
@@ -51,12 +40,27 @@ runs:
         aws-access-key-id: ${{ inputs.aws_access_key }}
         aws-secret-access-key: ${{ inputs.aws_secret_key }}
         aws-region: ${{ inputs.aws_region }}
-
-    - env:
-        DATABASE: ${{ inputs.database_name }}
-        USERNAME: ${{ inputs.github_actor }}
-        SOURCE_DB: ${{ inputs.source_database_name }}
-        ACTION: ${{ inputs.branch_action }}
+        
+    - name: Delete Branch Database
       shell: bash
-      run: bash ${{ github.action_path }}/script.sh
+      if: ${{ inputs.branch_action == 'Delete' }}
+      run: |
+        echo "Deleting branch database ${{ inputs.database_name }}"
+        chmod +x ./data/delete_branch_database.sh
+        ./data/delete_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.database_name }}
+        
+    - name: Create Branch Database
+      if: ${{ inputs.branch_action == 'Create' }}
+      shell: bash
+      run: |
+        echo "Creating branch database ${{ inputs.database_name }}"
+        chmod +x ./data/create_branch_database.sh
+        ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.database_name }} ${{ inputs.github_actor }} ${{ inputs.source_database_name }} false
 
+    - name: Recreate Branch Database
+      if: ${{ inputs.branch_action == 'Recreate' }}
+      shell: bash
+      run: |
+        echo "Recreate branch database: ${{ inputs.database_name }}"
+        chmod +x ./data/create_branch_database.sh
+        ./data/create_branch_database.sh BuildUserDatabaseConnectionSettings ${{ inputs.database_name }} ${{ inputs.github_actor }} ${{ inputs.source_database_name }} true
