@@ -41,9 +41,6 @@ runs:
       run: |
         echo "Inputs validation failed."
         exit 1
-
-    - name: Checkout code
-      uses: actions/checkout@v4
  
     - name: Authenticate with DEV
       uses: aws-actions/configure-aws-credentials@v4
@@ -61,6 +58,7 @@ runs:
       run: |
         bash ${{ github.action_path }}/script.sh
         ls
+        find . -name '*.sql'
 
     - name: Upload Dump.sql
       if: success() || failure()
