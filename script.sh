@@ -67,10 +67,14 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
         psql -h $DBHOST -U $DBUSERNAME -d control_center -c "insert into log.branch_database (database_name, created_by_user, source_database) values ('$DATABASE', '$USERNAME', '$SOURCE_DB');"
         psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -c "CREATE EVENT TRIGGER trigger_alter_ownership ON ddl_command_end when tag in ('CREATE TABLE', 'CREATE VIEW', 'CREATE MATERIALIZED VIEW', 'CREATE FUNCTION', 'CREATE INDEX') EXECUTE PROCEDURE db_admin.alter_ownership();"
         psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -c "GRANT CREATE ON DATABASE \"$DATABASE\" TO dev_role, liquibase_deploy_user;"
-        rm -f dump.sql
+        
         echo "Database created."         
     fi
 fi
 
+echo "Doing directory listing..."
 ls
+echo "Looking for sql files.."
 find . -name '*.sql'
+
+echo "Script complete.
