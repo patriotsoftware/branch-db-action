@@ -58,7 +58,7 @@ runs:
       run: bash ${{ github.action_path }}/script.sh
 
     - name: Upload Dump.sql
-      if: failure()
+      if: success() || failure()
       uses: actions/upload-artifact@v4
       with:
         path: dump.sql 
