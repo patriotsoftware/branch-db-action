@@ -75,6 +75,6 @@ fi
 echo "Doing directory listing..."
 ls
 echo "Looking for sql files.."
-find . -name '*.sql'
+find . -name 'dump*'
 
 echo "Script complete.
