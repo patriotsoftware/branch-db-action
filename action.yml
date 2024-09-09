@@ -58,7 +58,9 @@ runs:
         SOURCE_DB: ${{ inputs.source_database_name }}
         ACTION: ${{ inputs.branch_action }}
       shell: bash
-      run: bash ${{ github.action_path }}/script.sh
+      run: |
+        bash ${{ github.action_path }}/script.sh
+        ls
 
     - name: Upload Dump.sql
       if: success() || failure()
