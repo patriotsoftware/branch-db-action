@@ -59,3 +59,12 @@ runs:
         ACTION: ${{ inputs.branch_action }}
       shell: bash
       run: bash ${{ github.action_path }}/script.sh
+
+    - name: Upload Dump.sql
+      if: success() || failure()
+      uses: actions/upload-artifact@v4
+      with:
+        path: *dump.sql 
+        name: dump-sql
+        retention-days: 1
+        if-no-files-found: ignore
