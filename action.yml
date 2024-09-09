@@ -41,9 +41,6 @@ runs:
       run: |
         echo "Inputs validation failed."
         exit 1
-
-    - name: Checkout code
-      uses: actions/checkout@v4
  
     - name: Authenticate with DEV
       uses: aws-actions/configure-aws-credentials@v4
@@ -59,3 +56,12 @@ runs:
         ACTION: ${{ inputs.branch_action }}
       shell: bash
       run: bash ${{ github.action_path }}/script.sh
+
+    - name: Upload Dump.sql
+      if: success() || failure()
+      uses: actions/upload-artifact@v4
+      with:
+        path: dump.sql 
+        name: dump-sql
+        retention-days: 1
+        if-no-files-found: ignore
