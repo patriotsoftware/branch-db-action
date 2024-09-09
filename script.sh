@@ -60,7 +60,7 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
         echo "$ACTION '$DATABASE' database from a copy of '$SOURCE_DB' database..."
         psql -h $DBHOST -U $DBUSERNAME -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE';"
         dropdb --if-exists -h $DBHOST -U $DBUSERNAME $DATABASE   
-        createdb --owner=dev_role -h $DBHOST -U $DBUSERNAME $DATABASE --template=template0 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 --encoding=UTF-8
+        createdb --owner=dev_role -h $DBHOST -U $DBUSERNAME $DATABASE --template=template0 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 --encoding=UTF-8 -e
         pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table=public.data_change_staging* --disable-triggers --no-owner -h $DBHOST -U $DBUSERNAME -d $SOURCE_DB > dump.sql
         sed -i '1s/^/SET ROLE dev_role;\n/' dump.sql
         psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -f dump.sql
@@ -71,10 +71,3 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
         echo "Database created."         
     fi
 fi
-
-echo "Doing directory listing..."
-ls
-echo "Looking for sql files.."
-find . -name 'dump*'
-
-echo "Script complete.
