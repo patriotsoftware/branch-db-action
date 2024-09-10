@@ -57,7 +57,7 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
         echo "Branch database name exists as a primary database. To prevent wiping out a primary db, No Database Created."
         exit 1
     elif [[ "$dbExists" = *"f"* ]] || [[ $ACTION = "Recreate" ]]; then
-        echo "$ACTION '$DATABASE' database from a copy of '$SOURCE_DB' database..."
+        echo "$ACTION '$DATABASE' database, a copy of '$SOURCE_DB' database..."
         psql -h $DBHOST -U $DBUSERNAME -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE';"
         dropdb --if-exists -h $DBHOST -U $DBUSERNAME $DATABASE   
         createdb --owner=dev_role -h $DBHOST -U $DBUSERNAME $DATABASE --template=template0 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 --encoding=UTF-8
