@@ -18,6 +18,9 @@ GitHub property 'github.ref' used to determine the branch name.
 #### 'github_actor' (required)
 GitHub property 'github.actor' to capture who is initiating the action.
 
+#### 'sql_dump' (optional)
+Set to false by default. Used for debugging. Upload dump.sql file as dump-sql artifact to workflow.
+
 #### 'aws_access_key' (required)
 Access key for Aws upload.
 
