@@ -4,6 +4,9 @@
 set -e
 
 SECRET_ID="BuildUserDatabaseConnectionSettings"
+if [ $CLUSTER = "Service" ];  then 
+    SECRET_ID="ServiceBuildUserDatabaseConnectionSettings"
+fi 
 
 get_database_connection_settings() {
     SECRET=$(aws secretsmanager get-secret-value --secret-id $1)
