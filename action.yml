@@ -36,6 +36,8 @@ inputs:
     required: false
     default: 'Service'
     
+# NOTE: we do not want to Create, Recreate, or Delete when database name is patriot_pay
+
 runs:
   using: 'composite'
   steps:
@@ -44,6 +46,7 @@ runs:
         inputs.github_actor == '' ||
         inputs.database_name == 'master' || 
         inputs.database_name == 'main' ||
+        inputs.database_name == 'patriot_pay' ||
         (inputs.branch_action != 'Delete' && inputs.source_database_name == '')
       shell: bash
       run: |
