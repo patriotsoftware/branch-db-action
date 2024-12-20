@@ -39,13 +39,7 @@ inputs:
 # NOTE: we do not want to Create, Recreate, or Delete when database name is patriot_pay
 
 runs:
-  using: 'composite'
-  env:
-    DATABASE: ${{ inputs.database_name }}
-    USERNAME: ${{ inputs.github_actor }}
-    SOURCE_DB: ${{ inputs.source_database_name }}
-    ACTION: ${{ inputs.branch_action }}
-    DB_CLUSTER: ${{ inputs.database_cluster }}      
+  using: 'composite'        
   steps:
     - if: |
         inputs.github_actor == '' ||
@@ -67,6 +61,12 @@ runs:
         aws-region: ${{ inputs.aws_region }}
 
     - shell: bash
+      env:
+        DATABASE: ${{ inputs.database_name }}
+        USERNAME: ${{ inputs.github_actor }}
+        SOURCE_DB: ${{ inputs.source_database_name }}
+        ACTION: ${{ inputs.branch_action }}
+        DB_CLUSTER: ${{ inputs.database_cluster }}
       run: bash ${{ github.action_path }}/script.sh
 
     - name: Upload Dump.sql
