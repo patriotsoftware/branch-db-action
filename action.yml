@@ -36,14 +36,23 @@ inputs:
     required: false
     default: 'Service'
     
+# NOTE: we do not want to Create, Recreate, or Delete when database name is patriot_pay
+
 runs:
   using: 'composite'
+  env:
+    DATABASE: ${{ inputs.database_name }}
+    USERNAME: ${{ inputs.github_actor }}
+    SOURCE_DB: ${{ inputs.source_database_name }}
+    ACTION: ${{ inputs.branch_action }}
+    DB_CLUSTER: ${{ inputs.database_cluster }}      
   steps:
     - if: |
-        inputs.database_name == '' ||
         inputs.github_actor == '' ||
-        inputs.database_name == 'master' || 
+        inputs.database_name == '' ||
         inputs.database_name == 'main' ||
+        inputs.database_name == 'master' ||
+        inputs.database_name == 'patriot_pay' ||
         (inputs.branch_action != 'Delete' && inputs.source_database_name == '')
       shell: bash
       run: |
@@ -57,13 +66,7 @@ runs:
         aws-secret-access-key: ${{ inputs.aws_secret_key }}
         aws-region: ${{ inputs.aws_region }}
 
-    - env:
-        DATABASE: ${{ inputs.database_name }}
-        USERNAME: ${{ inputs.github_actor }}
-        SOURCE_DB: ${{ inputs.source_database_name }}
-        ACTION: ${{ inputs.branch_action }}
-        DB_CLUSTER: ${{ inputs.database_cluster }}
-      shell: bash
+    - shell: bash
       run: bash ${{ github.action_path }}/script.sh
 
     - name: Upload Dump.sql
