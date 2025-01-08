@@ -64,7 +64,7 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
         psql -h $DBHOST -U $DBUSERNAME -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE';"
         dropdb --if-exists -h $DBHOST -U $DBUSERNAME $DATABASE   
         createdb --owner=dev_role -h $DBHOST -U $DBUSERNAME $DATABASE --template=template0 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 --encoding=UTF-8
-        pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table=public.data_change_staging* --disable-triggers --no-owner -h $DBHOST -U $DBUSERNAME -d $SOURCE_DB > dump.sql
+        pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table=public.data_change_staging* --disable-triggers --no-owner --no-privileges -h $DBHOST -U $DBUSERNAME -d $SOURCE_DB > dump.sql
         sed -i '1s/^/SET ROLE dev_role;\n/' dump.sql
         psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -f dump.sql -b
         psql -h $DBHOST -U $DBUSERNAME -d control_center -c "insert into log.branch_database (database_name, created_by_user, source_database) values ('$DATABASE', '$USERNAME', '$SOURCE_DB');" -b
