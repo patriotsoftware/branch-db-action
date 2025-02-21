@@ -37,12 +37,6 @@ inputs:
     default: 'Service'
     
 # NOTE: we do not want to Create, Recreate, or Delete when database name is patriot_pay
-
-permissions:
-  id-token: write   # This is required for requesting the JWT
-  contents: read
-  actions: read
-  checks: write
   
 runs:
   using: 'composite'        
@@ -59,14 +53,12 @@ runs:
         echo "Inputs validation failed."
         exit 1
  
-    - name: Get Credentials from Amazon Cognito Identity
-      uses: patriotsoftware/cognito-idpool-auth@main
+    - name: Authenticate with DEV
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        cognito-identity-pool-id: "us-east-1:45b20ecf-6975-4a05-97af-543360c1fcaa"
-        aws-region: "us-east-1"
-        audience: "cognito-identity.amazonaws.com"
-        aws-account-id: "305628290583"
-        set-in-environment: true 
+        aws-access-key-id: ${{ inputs.aws_access_key }}
+        aws-secret-access-key: ${{ inputs.aws_secret_key }}
+        aws-region: ${{ inputs.aws_region }}
 
     - shell: bash
       env:
