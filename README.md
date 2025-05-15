@@ -36,7 +36,7 @@ Database cluster used. Default is 'Service'.
 ## Sample Use
 
 ```
-  branch-db-action: 
+  branch-db-action:
     name:  Create or Delete Branch Database
     runs-on: psidev-linux
     steps:

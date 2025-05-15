@@ -35,11 +35,11 @@ inputs:
     description: 'Cluster to create the branch database on (Service/Main)'
     required: false
     default: 'Service'
-    
+
 # NOTE: we do not want to Create, Recreate, or Delete when database name is patriot_pay
-  
+
 runs:
-  using: 'composite'        
+  using: 'composite'
   steps:
     - if: |
         inputs.github_actor == '' ||
@@ -52,13 +52,24 @@ runs:
       run: |
         echo "Inputs validation failed."
         exit 1
- 
+
     - name: Authenticate with DEV
+      if: ${{ inputs.aws_access_key }} != ""
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ inputs.aws_access_key }}
         aws-secret-access-key: ${{ inputs.aws_secret_key }}
         aws-region: ${{ inputs.aws_region }}
+
+    - name: Get Credentials from Amazon Cognito Identity
+      if: ${{ inputs.aws_access_key }} == ""
+      uses: patriotsoftware/cognito-idpool-auth@main
+      with:
+        cognito-identity-pool-id: "us-east-1:45b20ecf-6975-4a05-97af-543360c1fcaa"
+        aws-region: "us-east-1"
+        audience: "cognito-identity.amazonaws.com"
+        aws-account-id: "305628290583"
+        set-in-environment: true
 
     - shell: bash
       env:
@@ -73,7 +84,7 @@ runs:
       if: inputs.sql_dump == 'true' && (success() || failure())
       uses: actions/upload-artifact@v4
       with:
-        path: dump.sql 
+        path: dump.sql
         name: dump-sql
         retention-days: 1
         if-no-files-found: ignore

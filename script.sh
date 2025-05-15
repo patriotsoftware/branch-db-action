@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# This script deletes, creates or recreates a branch database. 
+# This script deletes, creates or recreates a branch database.
 set -e
 
 SECRET_ID="BuildUserDatabaseConnectionSettings"
-if [ $DB_CLUSTER = "Service" ];  then 
+if [ $DB_CLUSTER = "Service" ];  then
     SECRET_ID="ServiceBuildUserDatabaseConnectionSettings"
 fi
 
 get_database_connection_settings() {
     SECRET=$(aws secretsmanager get-secret-value --secret-id $1)
-    
+
     SECRET_VALUE=$(echo $SECRET | jq -r '.SecretString')
     DBUSERNAME=$(echo $SECRET_VALUE | jq -r '.username')
     DBPASSWORD=$(echo $SECRET_VALUE | jq -r '.password')
@@ -35,7 +35,7 @@ if [ $ACTION = "Delete" ]; then
     echo "'$DATABASE' database has been deleted."
 
 elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
-    
+
     dbExists=$(psql -U $DBUSERNAME -h $DBHOST -d postgres -qtAX -c "SELECT EXISTS(SELECT 1 AS result FROM pg_database WHERE datname='$DATABASE');")
     dbPrimaryComment=$(psql -qtAX -h $DBHOST -d postgres -U $DBUSERNAME -c "SELECT EXISTS(SELECT 1 AS result FROM pg_database WHERE datname = '$DATABASE' AND shobj_description( oid, 'pg_database') = 'primary');")
 
@@ -62,7 +62,7 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
     elif [[ "$dbExists" = *"f"* ]] || [[ $ACTION = "Recreate" ]]; then
         echo "$ACTION '$DATABASE' database, a copy of '$SOURCE_DB' database..."
         psql -h $DBHOST -U $DBUSERNAME -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE';"
-        dropdb --if-exists -h $DBHOST -U $DBUSERNAME $DATABASE   
+        dropdb --if-exists -h $DBHOST -U $DBUSERNAME $DATABASE
         createdb --owner=dev_role -h $DBHOST -U $DBUSERNAME $DATABASE --template=template0 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 --encoding=UTF-8
         pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table=public.data_change_staging* --disable-triggers --no-owner --no-privileges -h $DBHOST -U $DBUSERNAME -d $SOURCE_DB > dump.sql
         sed -i '1s/^/SET ROLE dev_role;\n/' dump.sql
@@ -70,7 +70,7 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
         psql -h $DBHOST -U $DBUSERNAME -d control_center -c "insert into log.branch_database (database_name, created_by_user, source_database) values ('$DATABASE', '$USERNAME', '$SOURCE_DB');" -b
         psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -c "CREATE EVENT TRIGGER trigger_alter_ownership ON ddl_command_end when tag in ('CREATE TABLE', 'CREATE VIEW', 'CREATE MATERIALIZED VIEW', 'CREATE FUNCTION', 'CREATE INDEX') EXECUTE PROCEDURE db_admin.alter_ownership();" -b
         psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -c "GRANT CREATE ON DATABASE \"$DATABASE\" TO dev_role, liquibase_deploy_user;" -b
-        
+
         echo "Database created."
     fi
 fi
