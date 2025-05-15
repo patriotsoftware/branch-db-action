@@ -56,7 +56,7 @@ runs:
         exit 1
 
     - name: Authenticate with DEV
-      if: inputs.aws_access_key != ""
+      if: inputs.aws_access_key != ''
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ inputs.aws_access_key }}
@@ -64,7 +64,7 @@ runs:
         aws-region: ${{ inputs.aws_region }}
 
     - name: Get Credentials from Amazon Cognito Identity
-      if: inputs.aws_access_key == ""
+      if: inputs.aws_access_key == ''
       uses: patriotsoftware/cognito-idpool-auth@main
       with:
         cognito-identity-pool-id: "us-east-1:45b20ecf-6975-4a05-97af-543360c1fcaa"
