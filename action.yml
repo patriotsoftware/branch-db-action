@@ -24,9 +24,11 @@ inputs:
   aws_access_key:
     description: 'AWS Access Key (Required if no aws-actions/configure-aws-credentials)'
     required: false
+    default: ""
   aws_secret_key:
     description: 'AWS Secret Key (Required if no aws-actions/configure-aws-credentials)'
     required: false
+    default: ""
   aws_region:
     description: 'AWS Region'
     required: false
