@@ -19,8 +19,16 @@ inputs:
     required: true
   sql_dump:
     description: 'dump.sql file upload as dump-sql artifact'
-    default: 'false'
+    default: false
     required: false
+  aws_access_key:
+    description: 'AWS Access Key (Required if no aws-actions/configure-aws-credentials)'
+    required: false
+    default: ""
+  aws_secret_key:
+    description: 'AWS Secret Key (Required if no aws-actions/configure-aws-credentials)'
+    required: false
+    default: ""
   aws_region:
     description: 'AWS Region'
     required: false
@@ -47,7 +55,16 @@ runs:
         echo "Inputs validation failed."
         exit 1
 
+    - name: Authenticate with DEV
+      if: inputs.aws_access_key != ''
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ inputs.aws_access_key }}
+        aws-secret-access-key: ${{ inputs.aws_secret_key }}
+        aws-region: ${{ inputs.aws_region }}
+
     - name: Get Credentials from Amazon Cognito Identity
+      if: inputs.aws_access_key == ''
       uses: patriotsoftware/cognito-idpool-auth@main
       with:
         cognito-identity-pool-id: "us-east-1:45b20ecf-6975-4a05-97af-543360c1fcaa"
