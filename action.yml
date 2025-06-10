@@ -31,7 +31,12 @@ inputs:
     default: 'Service'
 
 # NOTE: we do not want to Create, Recreate, or Delete when database name is patriot_pay
-
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read
+  actions: read
+  checks: write
+  
 runs:
   using: 'composite'
   steps:
