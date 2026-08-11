@@ -26,9 +26,18 @@ dump_source_db() {
     pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table=public.data_change_staging* --disable-triggers --no-owner --no-privileges -h $DBHOST -U $DBUSERNAME -d $SOURCE_DB
 }
 
+database_is_primary() {
+    psql -qtAX -h $DBHOST -d postgres -U $DBUSERNAME -c "SELECT EXISTS(SELECT 1 AS result FROM pg_database WHERE datname = '$DATABASE' AND shobj_description( oid, 'pg_database') = 'primary');"
+}
+
 get_database_connection_settings $SECRET_ID
 
 if [ $ACTION = "Delete" ]; then
+
+    if [[ "$(database_is_primary)" = *"t"* ]]; then
+        echo "Branch database name exists as a primary database. To prevent wiping out a primary db, No Database Deleted."
+        exit 1
+    fi
 
     echo "Deleting '$DATABASE' database.."
 
@@ -41,7 +50,7 @@ if [ $ACTION = "Delete" ]; then
 elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
 
     dbExists=$(psql -U $DBUSERNAME -h $DBHOST -d postgres -qtAX -c "SELECT EXISTS(SELECT 1 AS result FROM pg_database WHERE datname='$DATABASE');")
-    dbPrimaryComment=$(psql -qtAX -h $DBHOST -d postgres -U $DBUSERNAME -c "SELECT EXISTS(SELECT 1 AS result FROM pg_database WHERE datname = '$DATABASE' AND shobj_description( oid, 'pg_database') = 'primary');")
+    dbPrimaryComment=$(database_is_primary)
 
     # set error to exit script and errors on any part of pipe to fail
     set -eo pipefail
