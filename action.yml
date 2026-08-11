@@ -17,10 +17,6 @@ inputs:
   github_actor:
     description: 'GitHub actor property'
     required: true
-  sql_dump:
-    description: 'dump.sql file upload as dump-sql artifact'
-    default: false
-    required: false
   aws_access_key:
     description: 'AWS Access Key (Required if no aws-actions/configure-aws-credentials)'
     required: false
@@ -81,12 +77,3 @@ runs:
         ACTION: ${{ inputs.branch_action }}
         DB_CLUSTER: ${{ inputs.database_cluster }}
       run: bash ${{ github.action_path }}/script.sh
-
-    - name: Upload Dump.sql
-      if: inputs.sql_dump == 'true' && (success() || failure())
-      uses: actions/upload-artifact@v4
-      with:
-        path: dump.sql
-        name: dump-sql
-        retention-days: 1
-        if-no-files-found: ignore
