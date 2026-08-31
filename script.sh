@@ -22,6 +22,27 @@ get_database_connection_settings() {
     export PGPASSWORD=$DBPASSWORD
 }
 
+drop_triggers() {
+    # Remove user-defined triggers copied from the source database.
+    # tgisinternal triggers are left alone so constraints (FKs) keep working.
+    psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -b -c "DO \$\$
+DECLARE
+    trigger_record record;
+BEGIN
+    FOR trigger_record IN
+        SELECT t.tgname, n.nspname, c.relname
+        FROM pg_trigger t
+        JOIN pg_class c ON c.oid = t.tgrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE NOT t.tgisinternal
+        AND t.tgname NOT LIKE '%audit_last_updated_trigger'
+    LOOP
+        EXECUTE format('DROP TRIGGER %I ON %I.%I', trigger_record.tgname, trigger_record.nspname, trigger_record.relname);
+    END LOOP;
+END
+\$\$;"
+}
+
 dump_source_db() {
     pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table=public.data_change_staging* --disable-triggers --no-owner --no-privileges -h $DBHOST -U $DBUSERNAME -d $SOURCE_DB
 }
@@ -68,6 +89,7 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
         createdb --owner=dev_role -h $DBHOST -U $DBUSERNAME $DATABASE --template=template0 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 --encoding=UTF-8
         # SET ROLE first so restored objects end up owned by dev_role
         { echo "SET ROLE dev_role;"; dump_source_db; } | psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -f - -b
+        drop_triggers
         psql -h $DBHOST -U $DBUSERNAME -d control_center -c "insert into log.branch_database (database_name, created_by_user, source_database) values ('$DATABASE', '$USERNAME', '$SOURCE_DB');" -b
         psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -c "CREATE EVENT TRIGGER trigger_alter_ownership ON ddl_command_end when tag in ('CREATE TABLE', 'CREATE VIEW', 'CREATE MATERIALIZED VIEW', 'CREATE FUNCTION', 'CREATE INDEX') EXECUTE PROCEDURE db_admin.alter_ownership();" -b
         psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -c "GRANT CREATE ON DATABASE \"$DATABASE\" TO dev_role, patriot_pay_deploy_user;" -b
