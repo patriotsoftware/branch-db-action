@@ -23,8 +23,8 @@ get_database_connection_settings() {
 }
 
 drop_triggers() {
-    # Remove user-defined triggers copied from the source database.
-    # tgisinternal triggers are left alone so constraints (FKs) keep working.
+    # Remove the triggers copied from the source database that publish DB events
+    # and block deletes/truncates. All other triggers are left in place.
     psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -b -c "DO \$\$
 DECLARE
     trigger_record record;
@@ -35,7 +35,7 @@ BEGIN
         JOIN pg_class c ON c.oid = t.tgrelid
         JOIN pg_namespace n ON n.oid = c.relnamespace
         WHERE NOT t.tgisinternal
-        AND t.tgname NOT LIKE '%audit_last_updated_trigger'
+        AND t.tgname IN ('on_data_change', 'zz_dml_guard_delete', 'zz_dml_guard_truncate')
     LOOP
         EXECUTE format('DROP TRIGGER %I ON %I.%I', trigger_record.tgname, trigger_record.nspname, trigger_record.relname);
     END LOOP;
