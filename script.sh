@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script deletes, creates or recreates a branch database.
-set -e
+set -eo pipefail
 
 SECRET_ID="BuildUserDatabaseConnectionSettings"
 if [ $DB_CLUSTER = "Service" ];  then
@@ -15,6 +15,7 @@ get_database_connection_settings() {
     DBUSERNAME=$(echo $SECRET_VALUE | jq -r '.username')
     DBPASSWORD=$(echo $SECRET_VALUE | jq -r '.password')
     DBHOST=$(echo $SECRET_VALUE | jq -r '.host')
+    DBREADONLYHOST=$(echo $SECRET_VALUE | jq -r '.readonlyHost')
     DBPORT=$(echo $SECRET_VALUE | jq -r '.port')
 
     DBURL="jdbc:postgresql://${DBHOST}:${DBPORT}/${DATABASE}"
@@ -44,7 +45,7 @@ END
 }
 
 dump_source_db() {
-    pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table=public.data_change_staging* --disable-triggers --no-owner --no-privileges -h $DBHOST -U $DBUSERNAME -d $SOURCE_DB
+    pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table=public.data_change_staging* --disable-triggers --no-owner --no-privileges -h $DBREADONLYHOST -U $DBUSERNAME -d $SOURCE_DB
 }
 
 get_database_connection_settings $SECRET_ID
