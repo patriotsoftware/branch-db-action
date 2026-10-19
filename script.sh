@@ -44,7 +44,7 @@ END
 }
 
 dump_source_db() {
-    pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table=public.data_change_staging* --disable-triggers --no-owner --no-privileges -h $DBHOST -U $DBUSERNAME -d $SOURCE_DB
+    pg_dump --exclude-table-data=audit.audit_log_* --exclude-table-data=audit.page_view_* --exclude-table-data=report.content_security_policy --exclude-table=public.data_change_staging* --disable-triggers --no-owner --no-privileges -h $DBHOST -U $DBUSERNAME -d $SOURCE_DB "$@"
 }
 
 get_database_connection_settings $SECRET_ID
@@ -87,8 +87,14 @@ elif [[ $ACTION = "Create" ]] || [[ $ACTION = "Recreate" ]]; then
         psql -h $DBHOST -U $DBUSERNAME -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE';"
         dropdb --if-exists -h $DBHOST -U $DBUSERNAME $DATABASE
         createdb --owner=dev_role -h $DBHOST -U $DBUSERNAME $DATABASE --template=template0 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 --encoding=UTF-8
-        # SET ROLE first so restored objects end up owned by dev_role
-        { echo "SET ROLE dev_role;"; dump_source_db; } | psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -f - -b
+        # SET ROLE first so restored objects end up owned by dev_role.
+        # pg_dump holds ACCESS SHARE locks on every source table until it exits, and through
+        # a pipe it cannot exit before psql consumes its output. Post-data (indexes, constraints,
+        # triggers) is captured in full before psql runs it, so no pg_dump is left holding those
+        # locks while psql builds indexes, which would block migrations on the source database.
+        { echo "SET ROLE dev_role;"; dump_source_db --section=pre-data --section=data; } | psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -f - -b
+        POST_DATA=$(dump_source_db --section=post-data)
+        { echo "SET ROLE dev_role;"; printf '%s\n' "$POST_DATA"; } | psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -f - -b
         drop_triggers
         psql -h $DBHOST -U $DBUSERNAME -d control_center -c "insert into log.branch_database (database_name, created_by_user, source_database) values ('$DATABASE', '$USERNAME', '$SOURCE_DB');" -b
         psql -h $DBHOST -U $DBUSERNAME -d $DATABASE -c "CREATE EVENT TRIGGER trigger_alter_ownership ON ddl_command_end when tag in ('CREATE TABLE', 'CREATE VIEW', 'CREATE MATERIALIZED VIEW', 'CREATE FUNCTION', 'CREATE INDEX') EXECUTE PROCEDURE db_admin.alter_ownership();" -b
