@@ -35,6 +35,7 @@ BEGIN
         JOIN pg_class c ON c.oid = t.tgrelid
         JOIN pg_namespace n ON n.oid = c.relnamespace
         WHERE NOT t.tgisinternal
+        AND t.tgparentid = 0 -- partition clones are dropped with their parent's trigger
         AND t.tgname IN ('on_data_change', 'zz_dml_guard_delete', 'zz_dml_guard_truncate')
     LOOP
         EXECUTE format('DROP TRIGGER %I ON %I.%I', trigger_record.tgname, trigger_record.nspname, trigger_record.relname);
