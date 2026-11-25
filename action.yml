@@ -63,7 +63,7 @@ runs:
       if: inputs.aws_access_key == ''
       uses: patriotsoftware/cognito-idpool-auth@main
       with:
-        cognito-identity-pool-id: "us-east-1:45b20ecf-6975-4a05-97af-543360c1fcaa"
+        cognito-identity-pool-id: "us-east-1:5f5d722a-9d22-4fb5-abac-353d520d77ca"
         aws-region: "us-east-1"
         audience: "cognito-identity.amazonaws.com"
         aws-account-id: "305628290583"
